@@ -1,5 +1,6 @@
 package com.francislainy.calendarsample.sample;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -8,6 +9,7 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.DayViewDecorator;
 import com.prolificinteractive.materialcalendarview.DayViewFacade;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+import com.prolificinteractive.materialcalendarview.spans.DotSpan;
 
 import org.threeten.bp.DateTimeUtils;
 import org.threeten.bp.Instant;
@@ -36,7 +38,15 @@ public class DisableDaysActivity2 extends AppCompatActivity {
         setContentView(R.layout.activity_basic);
         ButterKnife.bind(this);
 
-        widget.addDecorator(new MyDecorator());
+        // This could be coming from an api call (available date for month)
+        String[] datesFromAPI = new String[]{"2018-11-30", "2018-11-29", "2018-11-27", "2018-10-25"};
+        ArrayList<LocalDate> datesWithAvailableServicesList = new ArrayList<>();
+        for (String s: datesFromAPI) {
+            datesWithAvailableServicesList.add(stringToLocalDate(s));
+        }
+
+        widget.addDecorator(new MyDecorator(Color.BLUE
+                , datesWithAvailableServicesList));
 
         final LocalDate calendar = LocalDate.now();
         // widget.setSelectedDate(calendar);
@@ -52,31 +62,32 @@ public class DisableDaysActivity2 extends AppCompatActivity {
 
     private static class MyDecorator implements DayViewDecorator {
 
+        private int color;
+        private ArrayList<LocalDate> datesWithAvailableServicesList;
+
+        public MyDecorator(int color, ArrayList<LocalDate> listOfDates) {
+            this.color = color;
+            this.datesWithAvailableServicesList = listOfDates;
+        }
+
         @Override
         public boolean shouldDecorate(CalendarDay day) {
-            return checkDateHasService(day.getDate());
+            return checkDateHasService(day.getDate(), datesWithAvailableServicesList);
         }
 
         @Override
         public void decorate(DayViewFacade view) {
-            view.setDaysDisabled(true);
+            // view.setDaysDisabled(true);
+            view.addSpan(new DotSpan(5, color));
         }
     }
 
-    public static boolean checkDateHasService(LocalDate date) {
-
-        // This could be coming from an api call (available date for month)
-        String[] datesFromAPI = new String[]{"2018-11-30", "2018-11-29", "2018-11-27", "2018-10-25"};
-        ArrayList<LocalDate> datesWithAvailableServicesList = new ArrayList<>();
-
-        for (String s: datesFromAPI) {
-            datesWithAvailableServicesList.add(stringToLocalDate(s));
-        }
+    public static boolean checkDateHasService(LocalDate date, ArrayList<LocalDate> datesWithAvailableServicesList) {
 
         // The decoration fades out the days so we don't want it applied to available dates
-        return !datesWithAvailableServicesList.contains(date);
+        // return !datesWithAvailableServicesList.contains(date);
+        return datesWithAvailableServicesList.contains(date);
     }
-
 
     private static LocalDate stringToLocalDate(String stringDate) {
 

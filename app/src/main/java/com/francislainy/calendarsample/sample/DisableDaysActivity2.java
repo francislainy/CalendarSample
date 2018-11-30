@@ -9,10 +9,15 @@ import com.prolificinteractive.materialcalendarview.DayViewDecorator;
 import com.prolificinteractive.materialcalendarview.DayViewFacade;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 
+import org.threeten.bp.DateTimeUtils;
+import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Month;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -30,12 +35,6 @@ public class DisableDaysActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_basic);
         ButterKnife.bind(this);
-
-        // Add a decorator to disable prime numbered days
-        // widget.addDecorator(new PrimeDayDisableDecorator());
-        // // Add a second decorator that explicitly enables days <= 10. This will work because
-        // // decorators are applied in order, and the system allows re-enabling
-        // widget.addDecorator(new EnableOneToTenDecorator());
 
         widget.addDecorator(new MyDecorator());
 
@@ -67,13 +66,40 @@ public class DisableDaysActivity2 extends AppCompatActivity {
     public static boolean checkDateHasService(LocalDate date) {
 
         // This could be coming from an api call (available date for month)
+        String[] datesFromAPI = new String[]{"2018-11-30", "2018-11-29", "2018-11-27", "2018-10-25"};
         ArrayList<LocalDate> datesWithAvailableServicesList = new ArrayList<>();
 
-        datesWithAvailableServicesList.add(LocalDate.now());
-        datesWithAvailableServicesList.add(LocalDate.now().plusDays(1));
-        datesWithAvailableServicesList.add(LocalDate.now().plusDays(2));
+        for (String s: datesFromAPI) {
+            datesWithAvailableServicesList.add(stringToLocalDate(s));
+        }
 
+        // The decoration fades out the days so we don't want it applied to available dates
         return !datesWithAvailableServicesList.contains(date);
+    }
+
+
+    private static LocalDate stringToLocalDate(String stringDate) {
+
+        Date date = getDateOfStringDateYearMonthDate(stringDate);
+
+        return dateToLocalDate(date);
+    }
+
+
+
+    public static Date getDateOfStringDateYearMonthDate(String dateString) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(dateString, formatter);
+
+        Instant i = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        return DateTimeUtils.toDate(i);
+    }
+
+    public static LocalDate dateToLocalDate(Date date) {
+
+        return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
 }
